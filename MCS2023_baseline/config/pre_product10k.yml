@@ -1,0 +1,114 @@
+exp_name: 'train_model_for_prepare'
+outdir: './experiments/'
+
+num_gpu: 1
+
+dataset:
+    name: products10k
+    train_prefix: '/mnt/products10k/train/'
+    train_list: '/mnt/products10k/train.csv'
+
+    public_dir: '/mnt/products_public/'
+    public_query_annotation: '/mnt/products_public/queries.csv'
+    public_gallery_annotation: '/mnt/products_public/gallery.csv'
+    seed: 42
+
+    input_size: 256
+    batch_size: 80 #58 #112
+    padding: 12
+    augmentations: 'default'
+    augmentations_valid: 'default'
+    num_workers: 100
+
+model:
+    backbone: convnext_xxlarge.clip_laion2b_rewind 
+    pretrained: True
+    embedding_dim: 2048
+
+train:
+    save_weights: false
+    mperclass: 2
+    dropout: 0.0 #0.0200249673931647913091
+    losses_k:
+
+        k_class_metric_l: 1
+        k_class_second_l: 1
+        k_cat_metric_l: 0
+
+
+    classes:
+
+        second_loss:
+            name: "contrastive"
+            tuplet:
+                margin: 5.9085752905053998
+                scale: 64
+            contrastive:
+                pos_margin: 0.9
+                neg_margin: 0.5
+        loss:
+            name: "soft_triplet"
+            lr: 0.001907224423048435
+            weight_decay: 0.001496287235815297
+            arcface:
+                s: 24
+                m: 28.6
+                sub_centers: 3
+                
+            triplet_margin:
+                margin: 0.5
+                swap: false
+                smooth_loss: false
+
+
+            soft_triplet:
+                margin: 0.49235800624558853
+                centers_per_class: 12 #16 12
+                la: 35
+                gamma: 0.2636902056372232
+
+            proxy_anchor:
+                margin: 0.1
+                alpha: 32
+            
+
+        miner:
+            name: "batch_easy_hard"
+
+            multi_simularity:
+                epsilon: 0.13
+            
+            pair_margin:
+                pos_margin: 0.9
+                neg_margin: 0.5
+            
+            triplet_margin:
+                margin: 0.485
+                type_of_triplets: "all"
+            
+            batch_easy_hard:
+                pos_strategy: "semihard"
+                neg_strategy: "hard"
+
+
+    trunk:
+        lr: 6.091622019007595e-06
+        weight_decay: 0.001569550092429341
+
+    
+    optimizer: 'AdamW'
+    loss_optimizer: 'AdamW'
+    adamw_beta1: 0.9
+    adamw_beta2: 0.999
+    grad_clipping: 0.1
+    learning_rate: 0.0004227159125
+    momentum: 0.9
+    weight_decay: 0.000503325599323212816
+    lr_schedule:
+        name: 'StepLR'
+        step_size: 24
+        gamma: 0.1
+    n_epoch: 100
+    
+    eps: 0.01
+    freq_vis: 300
